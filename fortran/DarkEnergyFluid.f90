@@ -119,6 +119,11 @@
     real(dl), intent(in) :: a, adotoa, w, k, z, y(:)
     integer, intent(in) :: w_ix
     real(dl) Hv3_over_k, loga
+    real(dl) :: weff, adecay, width
+
+!        weff   = this%w_lam
+!        adecay = this%a_dec
+!        width  = this%w_width
 
     Hv3_over_k =  3*adotoa* y(w_ix + 1) / k
     !density perturbation
@@ -132,6 +137,9 @@
         end if
     elseif (this%wa/=0) then
         ayprime(w_ix) = ayprime(w_ix) + Hv3_over_k*this%wa*adotoa*a
+!    elseif (this%a_dec /=0 ) then
+!        ayprime(w_ix) = ayprime(w_ix) - &
+!          & - Hv3_over_k*adotoa*weff/(width*(1+COSH((2*LOG(a/adecay))/width)))
     end if
     !velocity
     if (abs(w+1) > 1e-6) then
@@ -151,9 +159,9 @@
     class(TIniFile), intent(in) :: Ini
 
     call this%TDarkEnergyModel%ReadParams(Ini)
-    this%w_n  = Ini%Read_Double('AxionEffectiveFluid_w_n')
+    this%w_n = Ini%Read_Double('AxionEffectiveFluid_w_n')
     this%om  = Ini%Read_Double('AxionEffectiveFluid_om')
-    this%a_c  = Ini%Read_Double('AxionEffectiveFluid_a_c')
+    this%a_c = Ini%Read_Double('AxionEffectiveFluid_a_c')
     call Ini%Read('AxionEffectiveFluid_theta_i', this%theta_i)
 
     end subroutine TAxionEffectiveFluid_ReadParams

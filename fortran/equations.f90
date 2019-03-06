@@ -1,11 +1,15 @@
     ! Equations module for background and perturbations
     ! To avoid circular module issues, some things are not part of module
 
-
-    subroutine Init_Backgrounds
+    subroutine Init_Backgrounds(this)
     !This is only called once per model, and is a good point to do any extra initialization.
     !It is called before first call to dtauda, but after
     !massive neutrinos are initialized
+
+    use results
+    use MassiveNu
+    implicit none
+    class(CAMBdata) :: this
 
     end  subroutine Init_Backgrounds
 

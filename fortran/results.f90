@@ -471,6 +471,7 @@
             if (this%closed .and. this%tau0/this%curvature_radius >3.14) then
                 call GlobalError('chi >= pi in closed model not supported',error_unsupported_params)
             end if
+!            call Init_Backgrounds(this)
             if (WantReion) call this%CP%Reion%Init(this)
             if (this%CP%NonLinear/=NonLinear_None) call this%CP%NonLinearModel%Init(this)
         end if
@@ -847,6 +848,7 @@
     real(dl), intent(out) :: densities(8,n)
     integer nu_i,i
 
+    open(unit=50, file="dL_DN.dat")
     do i=1, n
         a = a_arr(i)
         call this%CP%DarkEnergy%BackgroundDensityAndPressure(this%grhov, a, grhov_t)
@@ -869,6 +871,7 @@
         densities(8,i) = grhov_t*a**2
         densities(1,i) = sum(densities(2:8,i))
     end do
+    close(50)
 
     end subroutine CAMBdata_GetBackgroundDensities
 
@@ -1586,6 +1589,16 @@
     real(dl) reion_z_start, reion_z_complete
     Type(CAMBParams), pointer :: CP
 
+    integer, parameter :: NumPoints = 50000, NumPointsEx=NumPoints+2
+    integer, parameter ::  NumEqs=2
+    real(dl) astart, aend, dela
+    real(dl) :: grhonu
+    real(dl) rhoDM, rhoBM, rhoDE, rhoRD, rhoNU
+    real(dl) w(NumEqs,9), y(NumEqs),atol
+    integer  ii, iter, nu_i
+    real(dl) aVals(NumPointsEx)
+    logical :: logic_print_background
+
     CP => State%CP
 
     !Allocate memory outside parallel region to keep ifort happy
@@ -2078,6 +2091,33 @@
                 end associate
             end if
 
+    logic_print_background=.false.
+    if(logic_print_background) then
+
+      open(unit=50, file="print_background.dat")
+      dela = 1._dl/(NumPoints-1)  !a(NumPoints) is value now
+      do ii=1, NumPointsEx-1
+        aend = dela*ii
+        call State%CP%DarkEnergy%BackgroundDensityAndPressure(State%grhov, aend, rhoDE)
+        grhonu = 0
+        if (State%CP%Num_Nu_massive /= 0) then
+            !Get massive neutrino density relative to massless
+            do nu_i = 1, State%CP%nu_mass_eigenstates
+                call ThermalNuBackground%rho(a * State%nu_masses(nu_i), rhoNU)
+                grhonu = grhonu + rhoNU * State%grhormass(nu_i)
+            end do
+        end if
+
+        rhoDM = State%grhoc * (aend**(-3))
+        rhoBM = State%grhob * (aend**(-3))
+        rhoDE =       rhoDE * (aend**(-2))
+        rhoRD = State%grhog * (aend**(-4))
+        rhoNU =      grhonu * (aend**(-4))
+        write(50,'(100e15.6)') aend, 1/(aend**2*dtauda(State,aend)), rhoDM, rhoBM, rhoDE, rhoRD, rhoNU
+      end do
+      close(50)
+    end if
+ 
             if (FeedbackLevel > 0) then
                 write(*,'("Age of universe/GYr  = ",f7.3)') ThermoDerivedParams( derived_Age )
                 write(*,'("zstar                = ",f8.2)') ThermoDerivedParams( derived_zstar )
