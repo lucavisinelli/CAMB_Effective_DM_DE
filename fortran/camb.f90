@@ -384,6 +384,7 @@
 
     !  Read initial parameters.
     DarkEneryModel = UpperCase(Ini%Read_String_Default('dark_energy_model', 'fluid'))
+    write(*,*) DarkEneryModel
     if (allocated(P%DarkEnergy)) deallocate(P%DarkEnergy)
     if (DarkEneryModel == 'FLUID') then
         allocate (TDarkEnergyFluid::P%DarkEnergy)
@@ -391,6 +392,8 @@
         allocate (TDarkEnergyPPF::P%DarkEnergy)
     else if (DarkEneryModel == 'AXIONEFFECTIVEFLUID') then
         allocate (TAxionEffectiveFluid::P%DarkEnergy)
+    else if (DarkEneryModel == 'DMDEINTERACTION') then
+        allocate (TDMDEInteraction::P%DarkEnergy)
     else
         ErrMsg = 'Unknown dark energy model: '//trim(DarkEneryModel)
         return

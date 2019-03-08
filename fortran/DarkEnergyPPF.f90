@@ -6,7 +6,9 @@
     private
 
     type, extends(TDarkEnergyEqnOfState) :: TDarkEnergyPPF
-        real(dl) :: c_Gamma_ppf = 0.4_dl
+        real(dl) :: c_Gamma_ppf = 1.0_dl
+    !    real(dl) :: w_width = 0.1_dl !may not be used
+    !    real(dl) :: a_dec   = 0.1_dl !may not be used
     contains
     procedure :: ReadParams => TDarkEnergyPPF_ReadParams
     procedure, nopass :: PythonClass => TDarkEnergyPPF_PythonClass
@@ -69,7 +71,7 @@
     subroutine setcgammappf(this)
     class(TDarkEnergyPPF) :: this
 
-    this%c_Gamma_ppf = 0.4_dl * sqrt(this%cs2_lam)
+    this%c_Gamma_ppf = 1.0_dl * sqrt(this%cs2_lam)
 
     end subroutine setcgammappf
 

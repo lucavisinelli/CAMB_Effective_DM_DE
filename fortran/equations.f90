@@ -343,7 +343,7 @@
             ind=1
             !Set up variables with their tight coupling values
             y(EV%g_ix+2) = EV%pig
-            call EV%ThermoData%Values(tau,a, cs2,opacity,dopacity)
+            call EV%ThermoData%Values(tau,a, cs2, opacity,dopacity)
 
             if (second_order_tightcoupling) then
                 ! Francis-Yan Cyr-Racine November 2010
@@ -397,7 +397,7 @@
             end do
         else if (next_switch == tau_switch_nu_massive) then
             !Very non-relativistic neutrinos, switch to truncated velocity-weight hierarchy
-            call EV%ThermoData%Values(tau,a, cs2,opacity)
+            call EV%ThermoData%Values(tau,a, cs2, opacity)
             do nu_i = 1, CP%Nu_mass_eigenstates
                 if (.not. EV%MassiveNuApprox(nu_i) .and.  next_switch== EV%MassiveNuApproxTime(nu_i) ) then
                     call SwitchToMassiveNuApprox(EV, a, y, nu_i)

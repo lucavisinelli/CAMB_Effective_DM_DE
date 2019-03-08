@@ -2091,7 +2091,7 @@
                 end associate
             end if
 
-    logic_print_background=.false.
+    logic_print_background=.true.
     if(logic_print_background) then
 
       open(unit=50, file="print_background.dat")

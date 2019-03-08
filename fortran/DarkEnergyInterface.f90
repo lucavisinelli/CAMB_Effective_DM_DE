@@ -27,7 +27,7 @@
         real(dl) :: wa      = 0._dl  !may not be used, just for compatibility with e.g. halofit
         real(dl) :: cs2_lam = 1_dl   !rest-frame sound speed, though may not be used
         real(dl) :: w_width = 0.1_dl !may not be used
-        real(dl) :: a_dec   = 0.1_dl !may not be used
+        real(dl) :: a_dec   = 0._dl !may not be used
         logical :: use_tabulated_w = .false.  !Use interpolated table; note this is quite slow.
         logical :: no_perturbations = .false. !Don't change this, no perturbations is unphysical
         !Interpolations if use_tabulated_w=.true.
@@ -178,11 +178,11 @@
     real(dl) :: weff, adecay, width
 
     if(.not. this%use_tabulated_w) then
-    !!    TDarkEnergyEqnOfState_w_de= this%w_lam+ this%wa*(1._dl-a)
-        weff   = this%w_lam
-        adecay = this%a_dec
-        width  = this%w_width
-        TDarkEnergyEqnOfState_w_de= 0.5*weff*(1 + TANH(LOG(a/adecay)/width))
+        TDarkEnergyEqnOfState_w_de= this%w_lam+ this%wa*(1._dl-a)
+    !!    weff   = this%w_lam
+    !!    adecay = this%a_dec
+    !!    width  = this%w_width
+    !!    TDarkEnergyEqnOfState_w_de= 0.5*weff*(1 + TANH(LOG(a/adecay)/width))
     else
         al=dlog(a)
         if(al <= this%equation_of_state%Xmin_interp) then
@@ -212,21 +212,22 @@
     real(dl), intent(IN) :: a
     real(dl) :: weff, adecay, width
 
-        weff   = this%w_lam
-        adecay = this%a_dec
-        width  = this%w_width
+    !!    weff   = this%w_lam
+    !!    adecay = this%a_dec
+    !!    width  = this%w_width
 
     if(.not. this%use_tabulated_w) then
 
        !! We use w(a) = weff/2 (1 + Tanh[Log[a/adecay]/width])
        !! Here we compute
        !!
-       !!  exp( Integrate( -3(1+w) da/a) )* a**(-4)
+       !!  exp( Integrate( -3(1+w) da/a) )* a**(4)
        !!
-       !!  grho_de = a ** (1._dl - 3. * this%w_lam - 3. * this%wa)
-       !!  if (this%wa/=0) grho_de=grho_de*exp(-3. * this%wa * (1._dl - a))
+       !!   grho_de = a**(1 - 1.5_dl*weff)*EXP( 1.5_dl*weff*width*&
+       !!      &*LOG( COSH(LOG(1/adecay)/width) / COSH(LOG(a/adecay)/width) ) )
 
-       grho_de = a**(1 - 1.5_dl*weff)*EXP( 1.5_dl*weff*width*LOG( COSH(LOG(1/adecay)/width) / COSH(LOG(a/adecay)/width) ) )
+         grho_de = a ** (1._dl - 3. * this%w_lam - 3. * this%wa)
+         if (this%wa/=0) grho_de=grho_de*exp(-3. * this%wa * (1._dl - a))
 
     else
         if(a == 0.d0)then
@@ -269,8 +270,8 @@
     if(.not. this%use_tabulated_w)then
         this%w_lam   = Ini%Read_Double('w', -1.d0)
         this%wa      = Ini%Read_Double('wa', 0.d0)
-        this%w_width = Ini%Read_Double('width', 0.5d0)
-        this%a_dec   = Ini%Read_Double('a_decay', 0.02d0)
+        !  this%w_width = Ini%Read_Double('width', 0.5d0)
+        !  this%a_dec   = Ini%Read_Double('a_decay', 0.02d0)
     else
         call File%LoadTxt(Ini%Read_String('wafile'), table)
         call this%SetwTable(table(:,1),table(:,2), size(table(:,1)))
@@ -287,6 +288,8 @@
     this%is_cosmological_constant = .not. this%use_tabulated_w .and. &
         &  abs(this%w_lam + 1._dl) < 1.e-6_dl .and. this%wa==0._dl .and. &
         &  this%a_dec==0._dl
+    ! this%is_cosmological_constant = .false.
+
     end subroutine TDarkEnergyEqnOfState_Init
 
 
