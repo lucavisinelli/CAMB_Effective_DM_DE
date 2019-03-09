@@ -30,8 +30,8 @@
     call this%TDarkEnergyEqnOfState%ReadParams(Ini)
     this%cs2_lam = Ini%Read_Double('cs2_lam', 1.d0)
     if (this%cs2_lam /= 1.d0) error stop 'cs2_lam not supported by PPF model'
-    this%w_width = Ini%Read_Double('w_width', 0.5d0)
-    this%a_dec   = Ini%Read_Double('a_dec',   0.1d0)
+    !  this%w_width = Ini%Read_Double('w_width', 0.5d0)
+    !  this%a_dec   = Ini%Read_Double('a_dec',   0.1d0)
     call this%setcgammappf
 
     end subroutine TDarkEnergyPPF_ReadParams

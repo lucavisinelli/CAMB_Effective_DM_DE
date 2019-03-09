@@ -2091,11 +2091,11 @@
                 end associate
             end if
 
-    logic_print_background=.true.
+    logic_print_background=.false.
     if(logic_print_background) then
 
       open(unit=50, file="print_background.dat")
-      dela = 1._dl/(NumPoints-1)  !a(NumPoints) is value now
+      dela = 1._dl/(NumPoints-1)  !a(NumPoints) is the present value
       do ii=1, NumPointsEx-1
         aend = dela*ii
         call State%CP%DarkEnergy%BackgroundDensityAndPressure(State%grhov, aend, rhoDE)

@@ -306,6 +306,7 @@
     call this%TDarkEnergyEqnOfState%ReadParams(Ini)
       this%w_width = Ini%Read_Double('w_width', 0.5d0)
       this%a_dec   = Ini%Read_Double('a_dec',   0.1d0)
+      this%m_phi   = Ini%Read_Double('m_phi',   1.d-27)
     end subroutine TDMDEInteraction_ReadParams
 
     function TDMDEInteraction_PythonClass()
@@ -377,21 +378,29 @@
       real(dl), intent(inout) :: ayprime(:)
       real(dl), intent(in) :: a, adotoa, w, k, z, y(:)
       integer, intent(in) :: w_ix
+      real(dl), parameter :: Mpcm1 = 6.4e-30_dl 
       real(dl) Hv3_over_k, cs2, fac, wp1, wprime
-      real(dl) :: weff, adecay, width
+      real(dl) :: weff, adecay, width, mphi
 
       weff   = this%w_lam
       adecay = this%a_dec
       width  = this%w_width
+      mphi   = this%m_phi
+
+      !!
+      !! cs2 = k^2 / (k^2 + 4m^2 a^2)
+      !! The axion mass is in units of hbar c / Mpc = 6.4*10^-30eV
+      !! In the following, we assume a mass 10^-27eV
+      !! so there is an extra factor 300
 
       if (a < adecay) then
-     !   fac = 2*(a*this%freq)**2
-     !   cs2 = k**2/(2*fac + k**2)
-        cs2 = 0
+        fac = 2*a*mphi/Mpcm1
+        cs2 = k**2/(k**2 + fac**2 )
       else
         cs2 = 1
       end if
-      cs2=abs(w)
+      !write(*,*) cs2
+      !cs2=abs(w)
 
       !!
       !! We set u = (1+w)v and we solve Eqs.35-36 in the CAMB notebook

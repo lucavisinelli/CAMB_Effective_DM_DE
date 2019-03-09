@@ -28,6 +28,7 @@
         real(dl) :: cs2_lam = 1_dl   !rest-frame sound speed, though may not be used
         real(dl) :: w_width = 0.1_dl !may not be used
         real(dl) :: a_dec   = 0._dl !may not be used
+        real(dl) :: m_phi   = 1.e-27_dl !may not be used
         logical :: use_tabulated_w = .false.  !Use interpolated table; note this is quite slow.
         logical :: no_perturbations = .false. !Don't change this, no perturbations is unphysical
         !Interpolations if use_tabulated_w=.true.
@@ -175,7 +176,7 @@
     class(TDarkEnergyEqnOfState) :: this
     real(dl) :: TDarkEnergyEqnOfState_w_de, al
     real(dl), intent(IN) :: a
-    real(dl) :: weff, adecay, width
+    !!    real(dl) :: weff, adecay, width
 
     if(.not. this%use_tabulated_w) then
         TDarkEnergyEqnOfState_w_de= this%w_lam+ this%wa*(1._dl-a)
@@ -210,7 +211,7 @@
     class(TDarkEnergyEqnOfState) :: this
     real(dl) :: grho_de, al, fint
     real(dl), intent(IN) :: a
-    real(dl) :: weff, adecay, width
+    !!    real(dl) :: weff, adecay, width
 
     !!    weff   = this%w_lam
     !!    adecay = this%a_dec
