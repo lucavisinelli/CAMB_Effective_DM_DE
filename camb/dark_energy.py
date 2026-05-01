@@ -110,6 +110,7 @@ class DarkEnergyFluid(DarkEnergyEqnOfState):
             raise CAMBError("fluid dark energy model does not support w crossing -1")
         return super().set_w_a_table(a, w)
 
+
 @fortran_class
 class DarkEnergyDMDE(DarkEnergyFluid):
     """
@@ -132,6 +133,7 @@ class DarkEnergyDMDE(DarkEnergyFluid):
         self.cs2 = cs2
         self.validate_params()
         return self
+
 
 @fortran_class
 class DarkEnergyPPF(DarkEnergyEqnOfState):

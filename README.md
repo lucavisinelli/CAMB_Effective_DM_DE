@@ -2,7 +2,7 @@
 
 This repository implements the effective Dark Matter → Dark Energy (DM→DE) transition model described in:
 
-**L. Visinelli (2019)**  
+**L. Visinelli (2019)**
 https://arxiv.org/abs/1906.11255
 
 ---
