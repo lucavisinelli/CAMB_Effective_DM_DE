@@ -110,6 +110,28 @@ class DarkEnergyFluid(DarkEnergyEqnOfState):
             raise CAMBError("fluid dark energy model does not support w crossing -1")
         return super().set_w_a_table(a, w)
 
+@fortran_class
+class DarkEnergyDMDE(DarkEnergyFluid):
+    """
+    Effective DM-to-DE transition fluid model.
+    """
+
+    _fields_ = (
+        ("w0", c_double, "late-time equation of state"),
+        ("a_transition", c_double, "transition scale factor"),
+        ("delta", c_double, "transition width"),
+    )
+
+    _fortran_class_module_ = "DarkEnergyFluid"
+    _fortran_class_name_ = "TDarkEnergyDMDE"
+
+    def set_params(self, w0=-1.0, a_transition=0.3, delta=0.3, cs2=1.0):
+        self.w0 = w0
+        self.a_transition = a_transition
+        self.delta = delta
+        self.cs2 = cs2
+        self.validate_params()
+        return self
 
 @fortran_class
 class DarkEnergyPPF(DarkEnergyEqnOfState):

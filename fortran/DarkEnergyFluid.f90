@@ -18,6 +18,19 @@
     procedure :: PerturbationEvolve => TDarkEnergyFluid_PerturbationEvolve
     end type TDarkEnergyFluid
 
+
+    type, extends(TDarkEnergyFluid) :: TDarkEnergyDMDE
+        real(dl) :: w0 = -1._dl
+        real(dl) :: a_transition = 0.3_dl
+        real(dl) :: delta = 0.3_dl
+    contains
+    procedure, nopass :: PythonClass => TDarkEnergyDMDE_PythonClass
+    procedure, nopass :: SelfPointer => TDarkEnergyDMDE_SelfPointer
+    procedure :: Init => TDarkEnergyDMDE_Init
+    procedure :: w_de => TDarkEnergyDMDE_w_de
+    procedure :: grho_de => TDarkEnergyDMDE_grho_de
+    procedure :: PerturbationEvolve => TDarkEnergyDMDE_PerturbationEvolve
+    end type TDarkEnergyDMDE
     !Example implementation of fluid model using specific analytic form
     !(approximate effective axion fluid model from arXiv:1806.10608, with c_s^2=1 if n=infinity (w_n=1))
     !This is an example, it's not supposed to be a rigorous model!  (not very well tested)
@@ -42,6 +55,93 @@
 
     contains
 
+
+    function TDarkEnergyDMDE_PythonClass()
+    character(LEN=:), allocatable :: TDarkEnergyDMDE_PythonClass
+
+    TDarkEnergyDMDE_PythonClass = 'DarkEnergyDMDE'
+
+    end function TDarkEnergyDMDE_PythonClass
+
+
+    subroutine TDarkEnergyDMDE_SelfPointer(cptr,P)
+    use iso_c_binding
+    Type(c_ptr) :: cptr
+    Type (TDarkEnergyDMDE), pointer :: PType
+    class (TPythonInterfacedClass), pointer :: P
+
+    call c_f_pointer(cptr, PType)
+    P => PType
+
+    end subroutine TDarkEnergyDMDE_SelfPointer
+
+
+    subroutine TDarkEnergyDMDE_Init(this, State)
+    use classes
+    class(TDarkEnergyDMDE), intent(inout) :: this
+    class(TCAMBdata), intent(in), target :: State
+
+    call this%TDarkEnergyEqnOfState%Init(State)
+    this%is_cosmological_constant = .false.
+    this%num_perturb_equations = 2
+
+    end subroutine TDarkEnergyDMDE_Init
+
+
+    function TDarkEnergyDMDE_w_de(this, a)
+    class(TDarkEnergyDMDE) :: this
+    real(dl), intent(in) :: a
+    real(dl) :: TDarkEnergyDMDE_w_de
+
+    TDarkEnergyDMDE_w_de = this%w0 / (1._dl + (a / this%a_transition)**(-2._dl / this%delta))
+
+    end function TDarkEnergyDMDE_w_de
+
+
+    function TDarkEnergyDMDE_grho_de(this, a) result(grho_de)
+    class(TDarkEnergyDMDE) :: this
+    real(dl), intent(in) :: a
+    real(dl) :: grho_de
+    real(dl) :: p, x, x0
+
+    p = 2._dl / this%delta
+    x = (a / this%a_transition)**p
+    x0 = (1._dl / this%a_transition)**p
+
+    grho_de = a * ((1._dl + x) / (1._dl + (1._dl / this%a_transition)**p))**(-3._dl * this%w0 / p)
+
+    end function TDarkEnergyDMDE_grho_de
+
+    subroutine TDarkEnergyDMDE_PerturbationEvolve(this, ayprime, w, w_ix, &
+        a, adotoa, k, z, y)
+    class(TDarkEnergyDMDE), intent(in) :: this
+    real(dl), intent(inout) :: ayprime(:)
+    real(dl), intent(in) :: a, adotoa, w, k, z, y(:)
+    integer, intent(in) :: w_ix
+    real(dl) Hv3_over_k, x, p, dw_dloga
+
+    Hv3_over_k = 3*adotoa*y(w_ix + 1)/k
+
+    ! density perturbation
+    ayprime(w_ix) = -3*adotoa*(this%cs2_lam - w)*(y(w_ix) + (1 + w)*Hv3_over_k) &
+        - (1 + w)*k*y(w_ix + 1) - (1 + w)*k*z
+
+    ! analytic derivative correction: dw/d ln a
+    p = 2._dl / this%delta
+    x = (a / this%a_transition)**p
+    dw_dloga = this%w0 * p * x / (1._dl + x)**2
+
+    ayprime(w_ix) = ayprime(w_ix) - adotoa*dw_dloga*Hv3_over_k
+
+    ! velocity perturbation
+    if (abs(w + 1) > 1e-6_dl) then
+        ayprime(w_ix + 1) = -adotoa*(1._dl - 3._dl*this%cs2_lam)*y(w_ix + 1) + &
+            k*this%cs2_lam*y(w_ix)/(1._dl + w)
+    else
+        ayprime(w_ix + 1) = 0._dl
+    end if
+
+    end subroutine TDarkEnergyDMDE_PerturbationEvolve
 
     subroutine TDarkEnergyFluid_ReadParams(this, Ini)
     use IniObjects
